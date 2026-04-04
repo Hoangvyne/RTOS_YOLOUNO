@@ -18,7 +18,7 @@ void TaskTempHumi(void *pvParameters) {
   lcd.backlight();
   lcd.print("System Ready!");
   vTaskDelay(1000 / portTICK_PERIOD_MS);
-
+  Serial.println("temp,humidity,light,label");
   while (1) {
     // 1. Đọc cảm biến DHT20
     int status = DHT.read();
@@ -28,16 +28,25 @@ void TaskTempHumi(void *pvParameters) {
     }
     int rawLight = analogRead(LIGHT_PIN);
     glob_light = (rawLight / 4095.0) * 100.0; 
+
+    int label;
+    if (glob_temperature > 30) label = 1;
+    else if (glob_light < 20) label = 2;
+    else if (glob_humidity > 80) label = 3;
+    else label = 0;
+
     if (glob_temperature > 32.0 || glob_humidity > 85.0) {
         isAlert = true; 
     } else {
         isAlert = false;
     }
-    /* Serial.printf("T: %.1f, H: %.1f, L: %.1f%%\n", glob_temperature, glob_humidity, glob_light); */
-    Serial.printf("%lu,%.1f,%.1f,%.1f\n", 
+    
+    Serial.printf("%.1f,%.1f,%.1f,%d\n", 
                   glob_temperature, 
                   glob_humidity, 
-                  glob_light);
+                  glob_light,
+                  label);
+
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("T:"); lcd.print(glob_temperature, 1);
