@@ -53,7 +53,6 @@ void tiny_ml_task(void *pvParameters)
 
     while (1)
     {
-        // Kiểm tra xem các con trỏ đã sẵn sàng chưa để tránh crash
         if (tf_input != nullptr && tf_interpreter != nullptr) {
             
             // ===== ĐƯA DỮ LIỆU VÀO (Normalization) =====
