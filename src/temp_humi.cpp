@@ -33,7 +33,11 @@ void TaskTempHumi(void *pvParameters) {
     } else {
         isAlert = false;
     }
-    Serial.printf("T: %.1f, H: %.1f, L: %.1f%%\n", glob_temperature, glob_humidity, glob_light);
+    /* Serial.printf("T: %.1f, H: %.1f, L: %.1f%%\n", glob_temperature, glob_humidity, glob_light); */
+    Serial.printf("%lu,%.1f,%.1f,%.1f\n", 
+                  glob_temperature, 
+                  glob_humidity, 
+                  glob_light);
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("T:"); lcd.print(glob_temperature, 1);

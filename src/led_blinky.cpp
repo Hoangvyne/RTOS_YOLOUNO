@@ -1,8 +1,6 @@
 #include "led_blinky.h"
 
 
-
-
 void TaskLed_blinky(void *pvParameters) {
     pinMode(LED_PIN, OUTPUT);
     int ledState = 0;
