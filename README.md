@@ -1,4 +1,4 @@
-# 🌿 Smart Environment Monitor with TinyML & IoT (Yolo Uno)
+# Smart Environment Monitor with TinyML & IoT (Yolo Uno)
 
 Dự án giám sát môi trường thông minh sử dụng **Yolo Uno (ESP32-S3)**, kết hợp:
 
@@ -40,7 +40,7 @@ Dự án giám sát môi trường thông minh sử dụng **Yolo Uno (ESP32-S3)
 
 ---
 
-## 🛠 Phần cứng sử dụng
+## Phần cứng sử dụng
 
 *  **Board**: Yolo Uno (ESP32-S3)
 
@@ -59,7 +59,7 @@ Dự án giám sát môi trường thông minh sử dụng **Yolo Uno (ESP32-S3)
 
 ---
 
-## 📌 Sơ đồ kết nối (Pinout)
+## Sơ đồ kết nối (Pinout)
 
 | Linh kiện   | ESP32-S3 | Cổng    |
 | ----------- | -------- | ------- |
@@ -69,34 +69,6 @@ Dự án giám sát môi trường thông minh sử dụng **Yolo Uno (ESP32-S3)
 | DHT20 (SCL) | GPIO 12  | I2C     |
 | LDR         | GPIO 4   | Analog  |
 | NeoPixel    | GPIO 48  | Onboard |
-
----
-
-## 🏗 Cấu trúc project
-
-```
-project/
-│── src/
-│   ├── main.cpp
-│   ├── temp_humi.cpp
-│   ├── neo_blinky.cpp
-│   ├── tinyml.cpp
-│   └── global.cpp
-│
-│── include/
-│   └── global.h
-│
-│── platformio.ini
-│── README.md
-```
-
-### 📂 Mô tả file
-
-* `global.*` → Biến toàn cục + Mutex
-* `temp_humi.cpp` → Đọc sensor + LCD + cảnh báo
-* `neo_blinky.cpp` → Điều khiển LED RGB
-* `tinyml.cpp` → AI inference mỗi 5s
-* `main.cpp` → Khởi tạo hệ thống + WiFi + Task
 
 ---
 
