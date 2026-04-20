@@ -6,7 +6,7 @@
 #define I2C_SCL 12
 #define LIGHT_PIN 4 // Chân cảm biến ánh sáng trên Yolo Uno
 
-LiquidCrystal_I2C lcd(0x27, 16, 2); 
+LiquidCrystal_I2C lcd(33, 16, 2); 
 
 void TaskTempHumi(void *pvParameters) {
   Wire.begin(I2C_SDA, I2C_SCL); 

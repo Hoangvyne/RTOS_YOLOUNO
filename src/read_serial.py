@@ -3,7 +3,7 @@ import csv
 import time
 
 # ===== CHỈNH PORT COM =====
-SERIAL_PORT = "COM3"   # Windows: COM3, COM4...
+SERIAL_PORT = "COM3"   
 BAUD_RATE = 115200
 
 # ===== FILE CSV =====

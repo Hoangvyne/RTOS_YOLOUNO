@@ -2,6 +2,6 @@
 #define LED_BLINKY_H
  
 #include <Arduino.h>
-#define LED_PIN 2
+#define LED_PIN 48
 void TaskLed_blinky(void *pvParameters);    
 #endif
