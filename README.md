@@ -1,84 +1,84 @@
 # Smart Environment Monitor with TinyML & IoT (Yolo Uno)
 
-Dự án giám sát môi trường thông minh sử dụng **Yolo Uno (ESP32-S3)**, kết hợp:
+A smart environment monitoring project using **Yolo Uno (ESP32-S3)**, integrating:
 
-*  **FreeRTOS** (đa nhiệm thời gian thực)
+*  **FreeRTOS** (real-time multitasking)
 *  **TinyML (TensorFlow Lite Micro)**
 *  **IoT (ThingsBoard)**
 
 ---
 
-##  Tính năng chính
+##  Key Features
 
-*  **Giám sát thời gian thực**
-  Đọc dữ liệu từ:
+*  **Real-time monitoring**
+  Collects data from:
 
-  * Nhiệt độ, độ ẩm (**DHT20**)
-  * Ánh sáng (**LDR**)
+  * Temperature and humidity (**DHT20**)
+  * Light intensity (**LDR**)
 
-*  **Hiển thị tại chỗ**
-  Hiển thị dữ liệu lên **LCD 1602 I2C**
+*  **Local display**
+  Displays data on **LCD 1602 I2C**
 
-*  **Cảnh báo thông minh**
-  Đèn **NeoPixel RGB** thay đổi trạng thái theo mức độ nguy hiểm (`isAlert`)
+*  **Smart alerts**
+  **NeoPixel RGB LED** changes state based on alert level (`isAlert`)
 
-*  **Trí tuệ nhân tạo (TinyML)**
-  Dự đoán trạng thái môi trường:
+*  **Artificial Intelligence (TinyML)**
+  Predicts environmental states:
 
   * Normal
   * Fan ON
   * Light ON
   * Warning
 
-*  **Kết nối IoT**
+*  **IoT connectivity**
 
-  * Gửi dữ liệu lên **ThingsBoard Dashboard**
-  * Nhận lệnh điều khiển từ xa (RPC)
+  * Sends data to **ThingsBoard Dashboard**
+  * Receives remote control commands (RPC)
 
-*  **Đa nhiệm (Multitasking)**
-  Sử dụng **FreeRTOS** để chạy nhiều task độc lập
+*  **Multitasking**
+  Uses **FreeRTOS** to run multiple independent tasks
 
 ---
 
-## Phần cứng sử dụng
+## Hardware Used
 
 *  **Board**: Yolo Uno (ESP32-S3)
 
-*  **Cảm biến**
+*  **Sensors**
 
-  * DHT20 (I2C) – Nhiệt độ & Độ ẩm
-  * LDR (Analog) – Ánh sáng
+  * DHT20 (I2C) – Temperature & Humidity
+  * LDR (Analog) – Light
 
-*  **Hiển thị**
+*  **Display**
 
   * LCD 1602 I2C (0x27 / 0x3F)
 
-*  **Đèn**
+*  **LED**
 
   * NeoPixel RGB (GPIO 48)
 
 ---
 
-## Sơ đồ kết nối (Pinout)
+## Connection Diagram (Pinout)
 
-| Linh kiện   | ESP32-S3 | Cổng    |
-| ----------- | -------- | ------- |
-| LCD (SDA)   | GPIO 11  | I2C     |
-| LCD (SCL)   | GPIO 12  | I2C     |
-| DHT20 (SDA) | GPIO 11  | I2C     |
-| DHT20 (SCL) | GPIO 12  | I2C     |
-| LDR         | GPIO 4   | Analog  |
-| NeoPixel    | GPIO 48  | Onboard |
+| Component   | ESP32-S3 | Interface |
+| ----------- | -------- | --------- |
+| LCD (SDA)   | GPIO 11  | I2C       |
+| LCD (SCL)   | GPIO 12  | I2C       |
+| DHT20 (SDA) | GPIO 11  | I2C       |
+| DHT20 (SCL) | GPIO 12  | I2C       |
+| LDR         | GPIO 4   | Analog    |
+| NeoPixel    | GPIO 48  | Onboard   |
 
 ---
 
-## ⚙️ Cài đặt & sử dụng
+## ⚙️ Setup & Usage
 
-### 🔧 Yêu cầu
+### 🔧 Requirements
 
 * VSCode + PlatformIO
 
-### 📚 Thư viện
+### 📚 Libraries
 
 ```ini
 robtillaart/DHT20
@@ -86,5 +86,3 @@ marcoschwartz/LiquidCrystal_I2C
 adafruit/Adafruit NeoPixel
 tanakamasayuki/TensorFlowLite_ESP32
 thingsboard/ThingsBoard
-```
-
