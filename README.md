@@ -40,6 +40,7 @@ A smart environment monitoring project using **Yolo Uno (ESP32-S3)**, integratin
 
 ---
 
+![Dashboard](image.png)
 ## Hardware Used
 
 *  **Board**: Yolo Uno (ESP32-S3)
@@ -86,3 +87,4 @@ marcoschwartz/LiquidCrystal_I2C
 adafruit/Adafruit NeoPixel
 tanakamasayuki/TensorFlowLite_ESP32
 thingsboard/ThingsBoard
+![alt text](image.png)

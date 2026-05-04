@@ -1,147 +1,137 @@
 #include "tinyml.h"
-#include "global.h" 
+#include "global.h"
 
 #define TEMP_MIN 20.0f
 #define TEMP_MAX 40.0f
-
 #define HUMI_MIN 0.0f
 #define HUMI_MAX 100.0f
 
-#define LIGHT_MIN 0.0f
-#define LIGHT_MAX 4095.0f
-
-
-
-float normalize(float x, float min, float max) {
+float normalize(float x, float min, float max)
+{
     return (x - min) / (max - min);
 }
 
-typedef struct {
-    float temp;
-    float humi;
-    float light;
-} SensorData;
-
-extern QueueHandle_t sensorQueue;
-
+// ===== TFLITE =====
 namespace
 {
     tflite::ErrorReporter *tf_error_reporter = nullptr;
-    const tflite::Model *tf_model = nullptr; 
+    const tflite::Model *tf_model = nullptr;
     tflite::MicroInterpreter *tf_interpreter = nullptr;
     TfLiteTensor *tf_input = nullptr;
     TfLiteTensor *tf_output = nullptr;
-    
-    constexpr int kTensorArenaSize = 16 * 1024; 
+
+    constexpr int kTensorArenaSize = 16 * 1024;
     uint8_t tensor_arena[kTensorArenaSize];
 }
 
+// ===== SETUP =====
 void setupTinyML()
 {
-    Serial.println(">>> TensorFlow Lite Initializing...");
+    Serial.println(">>> TinyML Init");
+
     static tflite::MicroErrorReporter micro_error_reporter;
     tf_error_reporter = &micro_error_reporter;
 
-    tf_model = tflite::GetModel(smart_env_model_tflite); 
-    
+    tf_model = tflite::GetModel(smart_env_model_tflite);
+
     if (tf_model->version() != TFLITE_SCHEMA_VERSION)
     {
-        tf_error_reporter->Report("Model version mismatch!");
+        Serial.println("Model mismatch!");
         return;
     }
 
     static tflite::AllOpsResolver resolver;
     static tflite::MicroInterpreter static_interpreter(
         tf_model, resolver, tensor_arena, kTensorArenaSize, tf_error_reporter);
+
     tf_interpreter = &static_interpreter;
 
     if (tf_interpreter->AllocateTensors() != kTfLiteOk)
     {
-        tf_error_reporter->Report("AllocateTensors() failed");
+        Serial.println("Allocate failed");
         return;
     }
 
     tf_input = tf_interpreter->input(0);
     tf_output = tf_interpreter->output(0);
 
-    Serial.println(">>> TinyML Initialized Successfully!");
+    Serial.println(">>> TinyML Ready");
 }
 
+// ===== TASK =====
 void tiny_ml_task(void *pvParameters)
 {
     setupTinyML();
-    fanSemaphore = xSemaphoreCreateBinary();
-    alertSemaphore = xSemaphoreCreateBinary();
-    SensorData data;
 
+    SensorData_t data;
+    LCDData_t lcdData;
+    
     while (1)
     {
-        if (xQueueReceive(sensorQueue, &data, portMAX_DELAY))
+        // Đợi signal có data mới
+        if (xSemaphoreTake(sensorSemaphore, portMAX_DELAY))
         {
-            // chuan hoa 
-            tf_input->data.f[0] = normalize(data.temp, TEMP_MIN, TEMP_MAX);
-            tf_input->data.f[1] = normalize(data.humi, HUMI_MIN, HUMI_MAX);
-            tf_input->data.f[2] = normalize(data.light, LIGHT_MIN, LIGHT_MAX);
-
-            // latency
-            unsigned long start = millis();
-
-            if (tf_interpreter->Invoke() == kTfLiteOk)
+            // Lấy data từ queue (đã được Control task đảm bảo)
+            if (xQueueReceive(sensorQueue, &data, 0))
             {
-                unsigned long end = millis();
-                Serial.print("Inference time: ");
-                Serial.print(end - start);
-                Serial.println(" ms");
+                // ===== NORMALIZE =====
+                tf_input->data.f[0] = normalize(data.temperature, TEMP_MIN, TEMP_MAX);
+                tf_input->data.f[1] = normalize(data.humidity, HUMI_MIN, HUMI_MAX);
 
-                int predicted_label = 0;
-                float max_val = tf_output->data.f[0];
+                unsigned long start = millis();
 
-                for (int i = 1; i < 4; i++)
+                if (tf_interpreter->Invoke() == kTfLiteOk)
                 {
-                    if (tf_output->data.f[i] > max_val)
+                    unsigned long end = millis();
+
+                    float temp_score = tf_output->data.f[0];
+                    float humi_score = tf_output->data.f[1];
+
+                    int temp_pred = temp_score > 0.5f;
+                    int humi_pred = humi_score > 0.5f;
+
+                    // ===== LED CONTROL =====
+                    LedCommand_t cmd;
+                    cmd.led1 = temp_pred;
+                    cmd.led2 = humi_pred;
+                    cmd.status = STATUS_NORMAL;
+                    if (temp_pred)
                     {
-                        max_val = tf_output->data.f[i];
-                        predicted_label = i;
+                        cmd.status = STATUS_HOT;
                     }
+                    else if (humi_pred)
+                    {
+                        cmd.status = STATUS_HUMI;
+                    }
+                    if(data.isAlert)
+                    {
+                        cmd.status = STATUS_ALERT;
+                    }
+                    xQueueSend(ledQueue, &cmd, portMAX_DELAY);
+
+                    // ===== LCD UPDATE =====
+                    snprintf(lcdData.line2, sizeof(lcdData.line2), "STATUS:%s",
+                    temp_pred ? "HOT" : (humi_pred ? "HUMI" : "NORMAL"));
+
+                    xQueueSend(lcdQueue, &lcdData, portMAX_DELAY);
+                    // ===== DEBUG =====
+                    Serial.println("===== TinyML =====");
+                    Serial.print("Inference: ");
+                    Serial.print(end - start);
+                    Serial.println(" ms");
+
+                    Serial.print("Temp Score: ");
+                    Serial.println(temp_score);
+
+                    Serial.print("Humi Score: ");
+                    Serial.println(humi_score);
+
+                    Serial.print("Temp → ");
+                    Serial.println(temp_pred ? "HOT" : "NORMAL");
+
+                    Serial.print("Humi → ");
+                    Serial.println(humi_pred ? "HIGH" : "NORMAL");
                 }
-                int rule_label = 0;
-                static int total = 0;
-                static int correct = 0;
-                if (predicted_label == rule_label) correct++; total++;
-                Serial.print("Accuracy: ");
-                Serial.println((float)correct / total);
-
-
-                if (data.temp > 30) rule_label = 1;
-                else if (data.light < 1000) rule_label = 2;
-                else if (data.humi > 75) rule_label = 3;
-                Serial.println("===== RESULT =====");
-
-                Serial.print("AI: ");
-                Serial.print(predicted_label);
-
-                Serial.print(" | Rule: ");
-                Serial.println(rule_label);
-
-                Serial.print("Confidence: ");
-                Serial.println(max_val);
-                switch (predicted_label)
-                {
-                    case 0: Serial.println("Normal"); break;
-                    case 1: Serial.println("Need Fan (Hot)"); break;
-                    case 2: Serial.println("Need Light (Dark)"); break;
-                    case 3: Serial.println("ENV Warning!"); break;
-                }
-                if (predicted_label == 1) {
-                    xSemaphoreGive(fanSemaphore);
-                }
-
-                if (predicted_label == 3) {
-                    xSemaphoreGive(alertSemaphore);
-                }
-
-                // ===== CORE IOT HOOK =====
-                // publishPrediction(predicted_label, max_val);
             }
         }
     }
