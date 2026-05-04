@@ -39,6 +39,7 @@ A smart environment monitoring project using **Yolo Uno (ESP32-S3)**, integratin
   Uses **FreeRTOS** to run multiple independent tasks
 
 ---
+##Dashboard
 
 ![Dashboard](image.png)
 ## Hardware Used
